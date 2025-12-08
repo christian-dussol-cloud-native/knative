@@ -1,10 +1,10 @@
-# 🔧 Setup Scripts
+# 🔧 Setup scripts
 
 Installation and cleanup scripts for Knative learning environment.
 
 ---
 
-## 📋 Available Scripts
+## 📋 Available scripts
 
 ### 1. `install-knative.sh`
 Installs Knative Serving on existing Kubernetes cluster.
@@ -65,7 +65,7 @@ chmod +x cleanup-knative.sh
 
 ## 🚀 Quick start (complete flow)
 
-### Fresh Installation
+### Fresh installation
 
 ```bash
 # Step 1: Install minikube (if not already installed)
@@ -83,7 +83,7 @@ minikube tunnel
 curl http://hello.default.127.0.0.1.sslip.io
 ```
 
-### Cleanup and Reinstall
+### Cleanup and reinstall
 
 ```bash
 # Step 1: Clean everything
@@ -124,7 +124,7 @@ Ctrl+C
 ./install-knative.sh
 ```
 
-### Service Not Accessible
+### Service not accessible
 
 **Symptom:** `curl: (6) Could not resolve host`
 
@@ -139,7 +139,7 @@ Ctrl+C
    curl http://hello.default.127.0.0.1.sslip.io
    ```
 
-### Cleanup Incomplete
+### Cleanup incomplete
 
 **Symptom:** Some resources still exist after cleanup
 
@@ -154,7 +154,7 @@ kubectl get crd | grep knative | awk '{print $1}' | xargs kubectl delete crd
 kubectl get crd | grep kyverno | awk '{print $1}' | xargs kubectl delete crd
 ```
 
-### Minikube Issues
+### Minikube issues
 
 **Symptom:** Minikube won't start or behaves oddly
 
@@ -171,9 +171,9 @@ minikube start --cpus=4 --memory=8192
 
 ---
 
-## 📊 Verification Commands
+## 📊 Verification commands
 
-### Check Installation Status
+### Check installation status
 
 ```bash
 # Knative Serving
@@ -189,7 +189,7 @@ kubectl get ksvc
 # Should show 'hello' service as Ready
 ```
 
-### Check Resource Usage
+### Check resource usage
 
 ```bash
 # Cluster resources
@@ -201,20 +201,20 @@ kubectl top pods --all-namespaces
 
 ---
 
-## 📝 Script Details
+## 📝 Script details
 
-### Install Versions
+### Install versions
 
 - **Knative Serving:** v1.12.0
 - **Kourier:** v1.12.0
 
-### Network Configuration
+### Network configuration
 
 - **DNS:** Magic DNS (sslip.io)
 - **Ingress:** Kourier (lightweight)
 - **Access:** minikube tunnel or NodePort
 
-### Resource Requirements
+### Resource requirements
 
 **Minimum:**
 - 2 CPU cores
