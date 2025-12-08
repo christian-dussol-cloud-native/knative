@@ -1,0 +1,66 @@
+# BAD SERVICE - Policy Violation Example
+#
+# This service will FAIL when policies are enforced.
+# It demonstrates what NOT to do.
+#
+# Try to deploy: kubectl apply -f bad-service.yaml
+# Expected: Kyverno policy blocks this deployment
+#
+# Violations:
+#   1. No scale-to-zero in dev namespace
+#   2. No resource limits set
+#   3. Missing cost tags
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: bad-service
+  namespace: dev  # Dev namespace requires scale-to-zero
+  labels:
+    app: bad-service
+  # MISSING: cost-center label for chargeback
+spec:
+  template:
+    metadata:
+      annotations:
+        # ❌ VIOLATION: minScale should be "0" in dev/staging
+        autoscaling.knative.dev/minScale: "1"  # Always running = wasting money!
+        autoscaling.knative.dev/maxScale: "100"  # No upper limit!
+    spec:
+      containers:
+      - name: app
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        # ❌ VIOLATION: No resource limits
+        # This can cause runaway costs!
+        # resources:  # MISSING!
+
+---
+# What happens when you deploy this:
+#
+# Without policies:
+#   ✓ Deployment succeeds
+#   ❌ Wastes money (always running in dev)
+#   ❌ No cost attribution
+#   ❌ No protection against runaway scaling
+#
+# With Kyverno policies (from ../../policies/):
+#   ❌ Deployment BLOCKED
+#   ✓ Policy violation message shows what's wrong
+#   ✓ Forces developer to fix issues
+#   ✓ Prevents cost waste before it happens
+#
+# Error message you'll see:
+#
+#   Error from server: admission webhook "validate.kyverno.svc" denied:
+#   
+#   policy Service/dev/bad-service for resource violation:
+#   
+#   enforce-scale-to-zero-dev:
+#     require-min-scale-zero: validation error:
+#     Dev/staging services must enable scale-to-zero.
+#     Set minScale to "0"
+#
+# How to fix:
+#   See good-service.yaml for correct configuration

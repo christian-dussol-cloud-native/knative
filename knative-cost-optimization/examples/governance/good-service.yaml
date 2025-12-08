@@ -1,0 +1,138 @@
+# GOOD SERVICE - Policy Compliant Example
+#
+# This service follows all governance policies.
+# It will deploy successfully.
+#
+# Deploy: kubectl apply -f good-service.yaml
+# Expected: Kyverno policies ALLOW this deployment
+#
+# Compliance:
+#   ✓ Scale-to-zero enabled in dev namespace
+#   ✓ Resource limits set (cost protection)
+#   ✓ Cost tags present (chargeback)
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: good-service
+  namespace: dev  # Dev namespace
+  labels:
+    app: good-service
+    # ✓ COMPLIANT: Cost center tag for chargeback
+    cost-center: "engineering"
+    team: "platform"
+    environment: "development"
+spec:
+  template:
+    metadata:
+      annotations:
+        # ✓ COMPLIANT: Scale to zero in dev/staging
+        autoscaling.knative.dev/minScale: "0"
+        
+        # ✓ COMPLIANT: Reasonable max scale
+        autoscaling.knative.dev/maxScale: "5"
+        
+        # Good practice: Fast scale down in dev
+        autoscaling.knative.dev/scaleDownDelay: "30s"
+    spec:
+      containers:
+      - name: app
+        image: gcr.io/knative-samples/helloworld-go
+        ports:
+        - containerPort: 8080
+        env:
+        - name: TARGET
+          value: "Policy Compliant Service"
+        
+        # ✓ COMPLIANT: Resource limits set
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+
+---
+# Why this service is compliant:
+#
+# 1. Scale-to-Zero (enforce-scale-to-zero policy)
+#    ✓ minScale: "0" in dev namespace
+#    ✓ Saves money when not in use
+#    ✓ No idle resource waste
+#
+# 2. Resource Limits (enforce-resource-limits policy)
+#    ✓ CPU limits prevent runaway costs
+#    ✓ Memory limits prevent OOM issues
+#    ✓ Predictable cost per pod
+#
+# 3. Cost Tags (future policy - best practice)
+#    ✓ cost-center label for chargeback
+#    ✓ team label for accountability
+#    ✓ environment label for filtering
+#
+# Deployment instructions:
+#
+#   # Create dev namespace if needed
+#   kubectl create namespace dev
+#
+#   # Apply policies first
+#   kubectl apply -f ../../policies/
+#
+#   # Deploy good service (will succeed)
+#   kubectl apply -f good-service.yaml
+#
+#   # Try bad service (will fail)
+#   kubectl apply -f bad-service.yaml
+#
+# Testing governance:
+#
+#   1. Deploy this service:
+#      kubectl apply -f good-service.yaml
+#      ✓ Success!
+#
+#   2. Try to deploy bad service:
+#      kubectl apply -f bad-service.yaml
+#      ❌ Blocked by policy
+#
+#   3. Watch scale-to-zero:
+#      watch kubectl get pods -n dev
+#      # After 30 seconds: pods terminate
+#
+#   4. Verify cost savings:
+#      # No pods running = $0 cost!
+#      kubectl get pods -n dev
+#      # Expected: No pods (scaled to zero)
+#
+# Cost impact:
+#
+#   Without scale-to-zero (bad-service):
+#     - 1 pod × 24h × 30 days = 720 pod-hours/month
+#     - At $0.05/hour = $36/month
+#     - Across 10 dev services = $360/month wasted!
+#
+#   With scale-to-zero (good-service):
+#     - Only pay during actual development
+#     - Example: 40 hours/week × 4 weeks = 160 pod-hours/month
+#     - At $0.05/hour = $8/month
+#     - Savings: $28/month per service (78%)
+#     - Across 10 services = $280/month saved!
+#
+# Vendor neutral governance:
+#
+#   These policies work EXACTLY the same on:
+#   ✓ Minikube (local testing)
+#   ✓ AWS EKS (production)
+#   ✓ Azure AKS (DR site)
+#   ✓ GCP GKE (multi-cloud)
+#   ✓ On-premise (compliance)
+#
+#   Write policies once. Enforce everywhere.
+#
+# Next steps:
+#
+#   1. Review policies: ../../policies/
+#   2. Customize for your organization
+#   3. Test in dev environment
+#   4. Roll out to production
+#   5. Monitor cost savings
