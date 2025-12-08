@@ -1,0 +1,153 @@
+# Kyverno Policy: Enforce Scale-to-Zero in Dev/Staging
+#
+# Purpose: Prevent cost waste by requiring scale-to-zero in non-production
+# Impact: Automatic cost savings in development environments
+# Vendor: Works on ANY Kubernetes with Kyverno
+#
+# Deploy: kubectl apply -f enforce-scale-to-zero.yaml
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-scale-to-zero-dev
+  annotations:
+    policies.kyverno.io/title: Enforce Scale-to-Zero in Dev/Staging
+    policies.kyverno.io/category: Cost Optimization
+    policies.kyverno.io/subject: Service
+    policies.kyverno.io/description: >-
+      Requires Knative services in dev/staging namespaces to have minScale: "0"
+      to enable scale-to-zero and reduce costs when idle.
+    pod-policies.kyverno.io/autogen-controllers: none
+spec:
+  # Enforce mode: blocks non-compliant deployments
+  validationFailureAction: enforce
+  
+  # Run in background for reporting
+  background: true
+  
+  rules:
+  - name: require-min-scale-zero
+    match:
+      any:
+      - resources:
+          kinds:
+          - Service
+          namespaces:
+          # Apply to dev and staging namespaces
+          - "dev"
+          - "dev-*"
+          - "staging"
+          - "staging-*"
+          # Add your own namespace patterns
+    validate:
+      message: >-
+        Dev/staging services must enable scale-to-zero for cost optimization.
+        Set autoscaling.knative.dev/minScale: "0" in template annotations.
+      pattern:
+        spec:
+          template:
+            metadata:
+              annotations:
+                # Require minScale to be "0"
+                autoscaling.knative.dev/minScale: "0"
+
+---
+# How this policy works:
+#
+# 1. Scope: Dev and staging namespaces only
+#    - Matches: dev, dev-*, staging, staging-*
+#    - Production: Not affected (can have minScale > 0)
+#
+# 2. Requirement: minScale must be "0"
+#    - Enables scale-to-zero capability
+#    - Pods terminate when idle
+#    - Cost = $0 when no traffic
+#
+# 3. Enforcement: Blocks non-compliant deployments
+#    - validationFailureAction: enforce
+#    - Deployment fails with helpful error message
+#    - Developer must fix before deploying
+#
+# Example validation error:
+#
+#   Error from server: admission webhook denied the request:
+#   
+#   policy Service/dev/my-service for resource violation:
+#   
+#   enforce-scale-to-zero-dev:
+#     require-min-scale-zero: validation error:
+#     Dev/staging services must enable scale-to-zero for cost optimization.
+#     Set autoscaling.knative.dev/minScale: "0" in template annotations.
+#
+# Cost impact example:
+#
+#   10 dev services without scale-to-zero:
+#     - 10 services × 1 pod × 168 hours/week = 1,680 pod-hours
+#     - At $0.05/hour = $84/week = $4,368/year
+#
+#   Same services with scale-to-zero (40 hours/week usage):
+#     - 10 services × 1 pod × 40 hours/week = 400 pod-hours
+#     - At $0.05/hour = $20/week = $1,040/year
+#     - Savings: $3,328/year (76%)!
+#
+# Testing this policy:
+#
+#   # Create dev namespace
+#   kubectl create namespace dev
+#
+#   # Apply policy
+#   kubectl apply -f enforce-scale-to-zero.yaml
+#
+#   # Try compliant service (will succeed)
+#   kubectl apply -f ../examples/governance/good-service.yaml
+#
+#   # Try non-compliant service (will fail)
+#   kubectl apply -f ../examples/governance/bad-service.yaml
+#
+# Customization:
+#
+#   Add your own namespace patterns:
+#     namespaces:
+#     - "dev"
+#     - "dev-*"
+#     - "staging"
+#     - "staging-*"
+#     - "test"        # Add test environments
+#     - "sandbox-*"   # Add sandbox pattern
+#
+#   Change to audit mode (warn but allow):
+#     validationFailureAction: audit
+#
+#   Exclude specific services:
+#     exclude:
+#       any:
+#       - resources:
+#           names:
+#           - "critical-dev-service"  # Always-on exception
+#
+# Vendor neutral:
+#
+#   This policy works identically on:
+#   ✓ Minikube
+#   ✓ AWS EKS
+#   ✓ Azure AKS
+#   ✓ Google GKE
+#   ✓ On-premise K8s
+#
+#   Write once. Enforce everywhere. Save money anywhere.
+#
+# Related policies:
+#
+#   - enforce-resource-limits.yaml (cost protection)
+#   - Future: require-cost-tags.yaml (chargeback)
+#
+# Monitoring:
+#
+#   # List all policies
+#   kubectl get clusterpolicies
+#
+#   # View policy details
+#   kubectl describe clusterpolicy enforce-scale-to-zero-dev
+#
+#   # Check policy reports
+#   kubectl get policyreport -A

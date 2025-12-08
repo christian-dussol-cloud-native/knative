@@ -1,0 +1,270 @@
+# Kyverno Policy: Enforce Resource Limits
+#
+# Purpose: Prevent runaway costs by requiring resource limits on all pods
+# Impact: Predictable costs, no surprise bills, budget protection
+# Vendor: Works on ANY Kubernetes with Kyverno
+#
+# Deploy: kubectl apply -f enforce-resource-limits.yaml
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-resource-limits
+  annotations:
+    policies.kyverno.io/title: Enforce Resource Limits
+    policies.kyverno.io/category: Cost Optimization
+    policies.kyverno.io/subject: Service
+    policies.kyverno.io/description: >-
+      Requires all Knative services to have CPU and memory limits defined.
+      Prevents runaway costs from uncontrolled resource consumption.
+    pod-policies.kyverno.io/autogen-controllers: none
+spec:
+  # Enforce mode: blocks non-compliant deployments
+  validationFailureAction: enforce
+  
+  # Run in background for reporting
+  background: true
+  
+  rules:
+  - name: require-cpu-limits
+    match:
+      any:
+      - resources:
+          kinds:
+          - Service
+    validate:
+      message: >-
+        CPU limits must be defined for cost control.
+        Add resources.limits.cpu to your container spec.
+      pattern:
+        spec:
+          template:
+            spec:
+              containers:
+              - resources:
+                  limits:
+                    # CPU limit must be present
+                    cpu: "?*"
+  
+  - name: require-memory-limits
+    match:
+      any:
+      - resources:
+          kinds:
+          - Service
+    validate:
+      message: >-
+        Memory limits must be defined for cost control.
+        Add resources.limits.memory to your container spec.
+      pattern:
+        spec:
+          template:
+            spec:
+              containers:
+              - resources:
+                  limits:
+                    # Memory limit must be present
+                    memory: "?*"
+  
+  - name: validate-reasonable-limits
+    match:
+      any:
+      - resources:
+          kinds:
+          - Service
+    validate:
+      message: >-
+        Resource limits must be within reasonable ranges:
+        CPU: max 4 cores, Memory: max 8Gi per container.
+        Contact platform team if you need higher limits.
+      deny:
+        conditions:
+          any:
+          # Deny if CPU > 4 cores
+          - key: "{{ request.object.spec.template.spec.containers[].resources.limits.cpu || '0' }}"
+            operator: GreaterThan
+            value: "4000m"
+          # Deny if memory > 8Gi
+          - key: "{{ request.object.spec.template.spec.containers[].resources.limits.memory || '0' }}"
+            operator: GreaterThan
+            value: "8Gi"
+
+---
+# How this policy works:
+#
+# 1. Requires CPU limits
+#    - Every container must have cpu limit
+#    - Prevents CPU runaway
+#    - Predictable costs per pod
+#
+# 2. Requires memory limits
+#    - Every container must have memory limit
+#    - Prevents OOM issues
+#    - Predictable memory costs
+#
+# 3. Enforces reasonable maximums
+#    - CPU: max 4 cores per container
+#    - Memory: max 8Gi per container
+#    - Prevents accidentally huge deployments
+#
+# Example validation errors:
+#
+#   No CPU limit:
+#     CPU limits must be defined for cost control.
+#     Add resources.limits.cpu to your container spec.
+#
+#   Excessive limits:
+#     Resource limits must be within reasonable ranges:
+#     CPU: max 4 cores, Memory: max 8Gi per container.
+#
+# Cost impact example:
+#
+#   Without limits (uncontrolled):
+#     - Pod could consume entire node
+#     - Unexpected scaling costs
+#     - No budget predictability
+#
+#   With limits (controlled):
+#     - Predictable cost per pod
+#     - Example: 200m CPU, 256Mi memory
+#     - Known maximum cost: $0.05/hour
+#
+# Scaling cost protection:
+#
+#   maxScale: 100 without limits:
+#     - Could spawn 100 huge pods
+#     - Unpredictable cost spike
+#     - Budget disaster!
+#
+#   maxScale: 100 with limits:
+#     - Each pod: max 4 CPU, 8Gi
+#     - Predictable max: 100 × $0.20/hour = $20/hour max
+#     - Budget protected!
+#
+# Testing this policy:
+#
+#   # Apply policy
+#   kubectl apply -f enforce-resource-limits.yaml
+#
+#   # Try service without limits (will fail)
+#   cat <<EOF | kubectl apply -f -
+#   apiVersion: serving.knative.dev/v1
+#   kind: Service
+#   metadata:
+#     name: no-limits
+#   spec:
+#     template:
+#       spec:
+#         containers:
+#         - image: nginx
+#           # Missing: resources.limits
+#   EOF
+#   # Expected: Blocked by policy
+#
+#   # Try service with excessive limits (will fail)
+#   cat <<EOF | kubectl apply -f -
+#   apiVersion: serving.knative.dev/v1
+#   kind: Service
+#   metadata:
+#     name: huge-limits
+#   spec:
+#     template:
+#       spec:
+#         containers:
+#         - image: nginx
+#           resources:
+#             limits:
+#               cpu: "8000m"  # Too high!
+#               memory: "16Gi" # Too high!
+#   EOF
+#   # Expected: Blocked by policy
+#
+#   # Try service with proper limits (will succeed)
+#   kubectl apply -f ../examples/governance/good-service.yaml
+#   # Expected: Success!
+#
+# Customization:
+#
+#   Adjust maximum limits for your organization:
+#     - key: "{{ ... }}"
+#       operator: GreaterThan
+#       value: "8000m"  # Increase CPU max to 8 cores
+#     
+#     - key: "{{ ... }}"
+#       operator: GreaterThan
+#       value: "16Gi"   # Increase memory max to 16Gi
+#
+#   Add minimum limits (optional):
+#     - key: "{{ ... }}"
+#       operator: LessThan
+#       value: "100m"   # Require at least 100m CPU
+#
+#   Exclude specific namespaces:
+#     exclude:
+#       any:
+#       - resources:
+#           namespaces:
+#           - "system-*"  # Exclude system namespaces
+#
+# Recommended resource patterns:
+#
+#   Small services (APIs, webhooks):
+#     limits:
+#       cpu: 200m
+#       memory: 256Mi
+#
+#   Medium services (web apps):
+#     limits:
+#       cpu: 500m
+#       memory: 512Mi
+#
+#   Large services (data processing):
+#     limits:
+#       cpu: 2000m
+#       memory: 2Gi
+#
+# Cost calculation with limits:
+#
+#   Service with limits:
+#     - CPU: 200m, Memory: 256Mi
+#     - Cloud cost: ~$0.05/pod-hour
+#     - Max replicas: 10
+#     - Max cost: 10 × $0.05 = $0.50/hour = $12/day max
+#
+#   Without limits:
+#     - Unknown resource consumption
+#     - Unpredictable costs
+#     - Could be $100/day or more!
+#
+# Vendor neutral:
+#
+#   This policy works identically on:
+#   ✓ Minikube
+#   ✓ AWS EKS (different node prices, same protection)
+#   ✓ Azure AKS (different node prices, same protection)
+#   ✓ Google GKE (different node prices, same protection)
+#   ✓ On-premise (internal chargeback)
+#
+#   Same policy. Different clouds. Predictable costs everywhere.
+#
+# Combined with scale-to-zero:
+#
+#   Best practices:
+#   1. Enforce resource limits (this policy)
+#      → Predictable cost per pod
+#   
+#   2. Enforce scale-to-zero (other policy)
+#      → Pay only for actual usage
+#   
+#   3. Result: Controlled AND optimized costs
+#      → Know max cost per hour
+#      → Pay $0 when idle
+#      → Budget protected!
+#
+# Monitoring:
+#
+#   # View policy status
+#   kubectl describe clusterpolicy enforce-resource-limits
+#
+#   # Check violations
+#   kubectl get policyreport -A
