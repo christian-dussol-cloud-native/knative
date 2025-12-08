@@ -1,16 +1,15 @@
-# Knative Cost Optimization - Learning Toolkit
+# Knative cost optimization - Learning toolkit
 
 [![CNCF Project](https://img.shields.io/badge/CNCF-Graduated-blue)](https://knative.dev/)
 [![Vendor Neutral](https://img.shields.io/badge/Vendor-Neutral-green)](https://www.cncf.io/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.28+-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![Kyverno](https://img.shields.io/badge/Kyverno-1.11+-00A95C?logo=kyverno&logoColor=white)](https://kyverno.io/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **🏳️ Vendor Neutral**: Runs on ANY Kubernetes - AWS, Azure, GCP, on-premise, edge, anywhere.
+> **🏳️ Vendor neutral**: runs on ANY Kubernetes - AWS, Azure, GCP, on-premise, anywhere.
 >
-> **Educational Content**: This repository provides learning materials and examples for understanding Knative cost optimization. It is NOT production-ready code. Always validate with your platform team and adapt for your specific requirements.
+> **Educational content**: this repository provides learning materials and examples for understanding Knative cost optimization. It is NOT production-ready code. Always validate with your platform team and adapt for your specific requirements.
 
-## 📋 What's Inside
+## 📋 What's inside
 
 This learning toolkit helps you understand and calculate the cost impact of Knative's scale-to-zero capabilities in **vendor-neutral** Kubernetes environments.
 
@@ -18,7 +17,7 @@ This learning toolkit helps you understand and calculate the cost impact of Knat
 
 **No vendor lock-in.** Same code works everywhere.
 
-### ⚠️ When to Use Knative
+### ⚠️ When to use Knative
 
 Knative is **excellent** for:
 - ✅ **HTTP APIs**: REST, GraphQL, webhooks
@@ -28,7 +27,7 @@ Knative is **excellent** for:
 - ✅ **Services with idle periods**: Business hours only, sporadic traffic
 - ✅ **Dev/staging environments**: Automatic cost savings
 
-### ❌ When NOT to Use Knative
+### ❌ When NOT to use Knative
 
 Knative is **NOT appropriate** for:
 - 🚫 **Databases**: MySQL, PostgreSQL, MongoDB (always-on, stateful)
@@ -43,17 +42,17 @@ Knative is **NOT appropriate** for:
 
 **Cold start reality:** ~300ms-1s first request after idle. Acceptable for APIs, not for real-time systems.
 
-### 🧮 Cost Calculators
+### 🧮 Cost calculators
 
-2. **Python Script** (`calculators/cost_calculator.py`)
+2. **Python script** (`calculators/cost_calculator.py`)
    - Automation-friendly
    - Batch processing multiple services
    - Export results to CSV
    - Integrate with your monitoring tools
 
-### 📚 Learning Materials
+### 📚 Learning materials
 
-- **Simple setup scripts**: Knative installation
+- **Simple setup & cleanup scripts**: Knative installation
 - **2 basic examples**: hello-world, scale-to-zero demo
 - **2 essential policies**: Kyverno governance
 - **1 Financial Services example**: Treasury API pattern
@@ -62,7 +61,7 @@ Knative is **NOT appropriate** for:
 
 ---
 
-## 🎯 Why This Toolkit?
+## 🎯 Why this toolkit?
 
 Traditional Kubernetes deployments run 24/7, even when idle:
 - Minimum replicas always running
@@ -76,7 +75,7 @@ Knative enables scale-to-zero:
 - Sub-second cold starts when requests arrive
 - Automatic scaling based on actual load
 
-### The Vendor Neutral Advantage
+### Vendor neutral advantage
 
 **Same code. Same API. Everywhere.**
 
@@ -86,7 +85,7 @@ Unlike cloud-specific serverless (Lambda, Cloud Functions, Azure Functions):
 - ✅ Multi-cloud ready
 - ✅ Full infrastructure control
 
-### The Missing Piece
+### The missing piece
 
 Without governance, serverless becomes chaos. Kyverno policies ensure:
 - Scale-to-zero enforced in dev/staging
@@ -96,11 +95,11 @@ Without governance, serverless becomes chaos. Kyverno policies ensure:
 
 ---
 
-## 🏳️ Why Vendor Neutral Matters
+## 🏳️ Why vendor neutral matters
 
 Knative is a **CNCF graduated project** - open source, community-driven, vendor-neutral by design.
 
-### The Problem with Cloud-Specific Serverless
+### The problem with cloud-specific serverless
 
 | Service | Limitation |
 |---------|------------|
@@ -110,7 +109,7 @@ Knative is a **CNCF graduated project** - open source, community-driven, vendor-
 
 **Result**: Vendor lock-in, proprietary APIs, migration nightmares.
 
-### The Knative Advantage
+### The Knative advantage
 
 Knative runs on ANY Kubernetes:
 - ✅ **AWS EKS** - Enterprise Kubernetes Service
@@ -119,7 +118,7 @@ Knative runs on ANY Kubernetes:
 - ✅ **Red Hat OpenShift** - Enterprise platform
 - ✅ **Rancher** - Multi-cluster management
 - ✅ **On-premise** - Your datacenter
-- ✅ **Local dev** - Kind, Minikube
+- ✅ **Local dev** - Minikube
 
 **Knative enables true multi-cloud serverless strategies.**
 
@@ -131,7 +130,6 @@ Knative runs on ANY Kubernetes:
 # - Azure AKS  
 # - GCP GKE
 # - On-premise K8s
-# - Edge clusters
 
 apiVersion: serving.knative.dev/v1
 kind: Service
@@ -151,7 +149,7 @@ spec:
 
 ---
 
-## 📁 Repository Structure (~15 files)
+## 📁 Repository Structure
 
 ```
 knative-cost-optimization-learning/
@@ -179,11 +177,11 @@ knative-cost-optimization-learning/
     └── enforce-resource-limits.yaml    # Cost control
 ```
 
-## 💡 How to Use This Toolkit
+## 💡 How to use this toolkit
 
-### Step 1: Calculate YOUR Potential Savings
+### Step 1: Calculate YOUR potential savings
 
-**Using Python Calculator:**
+**Using Python calculator:**
 ```bash
 cd calculators
 python3 cost_calculator.py --services 10 --replicas 3 --usage-hours 45 --cost-per-hour 0.05
@@ -196,19 +194,19 @@ Knative Cost = services × replicas × actual_usage_hours × cost/hour
 Potential Savings = Traditional Cost - Knative Cost
 ```
 
-**Example Pattern (Financial Services):**
+**Example pattern (financial services):**
 - Trading APIs active: 9h-18h weekdays only
 - Usage: 45 hours/week
 - Billed traditionally: 168 hours/week
 - Idle time: 123 hours/week (73%)
 
-### Step 2: Set Up Learning Environment
+### Step 2: set up your learning environment
 
 **Prerequisites:**
 - Kubernetes cluster (minikube)
 - kubectl installed
 
-**Quick Start:**
+**Quick start:**
 ```bash
 # Clone this repository
 git clone https://github.com/ChristianDussol/knative-cost-optimization-learning.git
@@ -223,15 +221,15 @@ chmod +x install-knative.sh
 
 ```
 
-### Step 3: Test with Examples
+### Step 3: test with examples
 
-**Deploy a Sample Application:**
+**Deploy a sample application:**
 ```bash
 cd examples
 kubectl apply -f hello-world.yaml
 ```
 
-**Watch Scale-to-Zero in Action:**
+**Watch Scale-to-Zero in action:**
 ```bash
 # Watch pods
 watch kubectl get pods
@@ -248,7 +246,7 @@ curl http://hello-world.default.127.0.0.1.sslip.io
 # Pod starts in <1 second
 ```
 
-**Test Governance Policies:**
+**Test governance policies:**
 ```bash
 cd examples/governance
 
@@ -261,9 +259,9 @@ kubectl apply -f good-service.yaml
 
 ---
 
-## Examples Included
+## Examples included
 
-### 1. Basic Scale-to-Zero Service
+### 1. Basic Scale-to-Zero service
 
 ```yaml
 apiVersion: serving.knative.dev/v1
@@ -284,7 +282,7 @@ spec:
           value: "Knative"
 ```
 
-### 2. Governance Policy (Kyverno)
+### 2. Governance policy (Kyverno)
 
 ```yaml
 apiVersion: kyverno.io/v1
@@ -316,9 +314,9 @@ spec:
 
 ---
 
-## ⚠️ Important Notes
+## ⚠️ Important notes
 
-### This is Educational Content
+### This is educational content
 
 - ✅ Learn Knative concepts and patterns
 - ✅ Understand cost optimization formulas
@@ -327,7 +325,7 @@ spec:
 - ❌ Do NOT assume savings without testing
 - ❌ Do NOT skip validation with your platform team
 
-### Cost Considerations
+### Cost considerations
 
 - Cold starts add latency (typically <1 second)
 - First request after scale-to-zero takes longer
@@ -338,9 +336,9 @@ spec:
 
 ---
 
-## 📚 Additional Resources
+## 📚 Additional resources
 
-### Official Documentation
+### Official documentation
 - [Knative Documentation](https://knative.dev/docs/)
 - [Kyverno Documentation](https://kyverno.io/docs/)
 - [CNCF Knative Project](https://www.cncf.io/projects/knative/)
@@ -349,12 +347,6 @@ spec:
 - [Knative Slack](https://knative.slack.com)
 - [Kyverno Slack](https://slack.k8s.io) - #kyverno channel
 - [CNCF Slack](https://slack.cncf.io)
-
----
-
-## 👤 About the Author
-
-**Christian Dussol** - Senior Engineering Manager specializing in Cloud-Native Architecture, FinOps, and Kubernetes
 
 ---
 
