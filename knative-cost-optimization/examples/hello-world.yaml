@@ -1,0 +1,81 @@
+# Basic Knative Service - Hello World
+#
+# This is the simplest possible Knative service.
+# It demonstrates scale-to-zero in action.
+#
+# Deploy: kubectl apply -f hello-world.yaml
+# Test: curl $(kubectl get ksvc hello-world -o jsonpath='{.status.url}')
+# Watch: watch kubectl get pods
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: hello-world
+  labels:
+    app: hello-world
+    example: basic
+spec:
+  template:
+    metadata:
+      annotations:
+        # Scale to zero when no traffic
+        autoscaling.knative.dev/minScale: "0"
+        # Maximum replicas
+        autoscaling.knative.dev/maxScale: "10"
+        # Scale down after 60 seconds of no requests
+        autoscaling.knative.dev/scaleDownDelay: "60s"
+    spec:
+      containers:
+      - name: hello
+        image: gcr.io/knative-samples/helloworld-go
+        ports:
+        - containerPort: 8080
+        env:
+        - name: TARGET
+          value: "Knative World"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+
+---
+# How to test:
+#
+# 1. Deploy this service:
+#    kubectl apply -f hello-world.yaml
+#
+# 2. Wait for service to be ready:
+#    kubectl wait --for=condition=Ready ksvc/hello-world --timeout=300s
+#
+# 3. Get the service URL:
+#    SERVICE_URL=$(kubectl get ksvc hello-world -o jsonpath='{.status.url}')
+#    echo $SERVICE_URL
+#
+# 4. Test the service:
+#    curl $SERVICE_URL
+#
+# 5. Watch pods scale:
+#    watch kubectl get pods
+#
+# 6. See scale-to-zero in action:
+#    - After sending requests, you'll see pods running
+#    - Wait 60 seconds without traffic
+#    - Pods will terminate (scale to zero)
+#    - Cost = $0 when idle!
+#
+# 7. Send another request:
+#    curl $SERVICE_URL
+#    - Pod starts in <1 second
+#    - Request is served
+#    - This is the "cold start"
+#
+# Vendor neutral: This SAME YAML works on:
+# - Minikube
+# - AWS EKS
+# - Azure AKS
+# - Google GKE
+# - On-premise K8s
+# - ANY Kubernetes!

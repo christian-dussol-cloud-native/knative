@@ -1,0 +1,78 @@
+# Scale-to-Zero Demo
+#
+# This service demonstrates Knative's scale-to-zero capabilities
+# with more aggressive scaling settings for learning.
+#
+# Deploy: kubectl apply -f scale-to-zero-demo.yaml
+# Monitor: watch 'kubectl get pods; echo ""; kubectl get ksvc'
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: scale-demo
+  labels:
+    app: scale-demo
+    example: scale-to-zero
+spec:
+  template:
+    metadata:
+      annotations:
+        # Scale to zero - THE KEY SETTING
+        autoscaling.knative.dev/minScale: "0"
+        
+        # Scale up quickly when traffic arrives
+        autoscaling.knative.dev/maxScale: "5"
+        
+        # Aggressive scale-down (30 seconds for demo)
+        # Production: use 60-300 seconds
+        autoscaling.knative.dev/scaleDownDelay: "30s"
+        
+        # Target concurrency per pod
+        autoscaling.knative.dev/target: "10"
+        
+        # Stable window before scaling decision
+        autoscaling.knative.dev/window: "60s"
+    spec:
+      containers:
+      - name: app
+        # Simple echo server for testing
+        image: hashicorp/http-echo:latest
+        args:
+        - "-text=Scale-to-zero demo! Current time: $(date)"
+        ports:
+        - containerPort: 5678
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+
+---
+# Demo Script:
+#
+# Terminal 1 - Watch scaling:
+#   watch 'kubectl get pods; echo ""; kubectl get ksvc scale-demo'
+#
+# Terminal 2 - Test requests:
+#
+#   # Get service URL
+#   URL=$(kubectl get ksvc scale-demo -o jsonpath='{.status.url}')
+#   # http://scale-demo.default.127.0.0.1.sslip.io
+#
+#   # Single request (cold start)
+#   time curl $URL
+#   # Notice: First request takes ~1 second (pod startup)
+#
+#   # Burst requests (scale up)
+#   for i in {1..50}; do curl $URL & done
+#   # Watch in Terminal 1: pods scale from 0 → 2-3 replicas
+#
+#   # Wait for scale down (30 seconds)
+#   sleep 35
+#   # Watch in Terminal 1: pods terminate → scale to zero
+#
+#   # Another request (cold start again)
+#   time curl $URL
+#   # Notice: Cold start again, but still fast (<1s)

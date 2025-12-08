@@ -1,0 +1,185 @@
+# Financial Services Example - Treasury API
+#
+# Real-world pattern: Trading hours only (9h-18h weekdays)
+# Perfect use case for Knative scale-to-zero
+#
+# ✅ WHY THIS WORKS:
+#   - HTTP API (request/response)
+#   - Predictable idle periods (nights, weekends)
+#   - Sub-second cold start acceptable
+#   - No persistent connections needed
+#   - Stateless workload
+#
+# ❌ KNATIVE IS NOT FOR:
+#   - Transaction databases (PostgreSQL, MySQL)
+#   - Message brokers (Kafka, RabbitMQ)
+#   - WebSocket servers (persistent connections)
+#   - Cache layers (Redis - needs instant response)
+#   - Real-time trading engines (ultra-low latency)
+#
+# Usage pattern:
+#   - Active: 9h-18h weekdays = 45 hours/week
+#   - Idle: Nights + weekends = 123 hours/week (73%)
+#
+# Cost savings calculation:
+#   Traditional: 168 hours/week × $0.05 = $8.40/week = $437/year
+#   Knative: 45 hours/week × $0.05 = $2.25/week = $117/year
+#   Savings: $320/year per service (73%)
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: treasury-api
+  labels:
+    app: treasury-api
+    team: treasury
+    cost-center: financial-services
+    environment: production
+  annotations:
+    description: "Treasury management API - active during market hours"
+    business-hours: "9h-18h weekdays"
+    workload-type: "financial-api"
+spec:
+  template:
+    metadata:
+      annotations:
+        # Scale to zero outside market hours
+        autoscaling.knative.dev/minScale: "0"
+        
+        # Max replicas during peak trading
+        autoscaling.knative.dev/maxScale: "20"
+        
+        # Scale down after 5 minutes (keep warm during trading day)
+        autoscaling.knative.dev/scaleDownDelay: "300s"
+        
+        # Higher concurrency for financial workloads
+        autoscaling.knative.dev/target: "50"
+        
+        # Panic threshold for sudden load
+        autoscaling.knative.dev/panicThresholdPercentage: "200"
+    spec:
+      containers:
+      - name: treasury-api
+        # Replace with your actual treasury API image
+        image: gcr.io/knative-samples/helloworld-go
+        ports:
+        - name: http1
+          containerPort: 8080
+        env:
+        - name: TARGET
+          value: "Treasury API"
+        - name: REGION
+          value: "EU-WEST-1"
+        - name: ENVIRONMENT
+          value: "production"
+        
+        # Financial APIs need more resources
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        
+        # Health checks (important for financial services)
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# Real-World Financial Services Pattern
+#
+# Scenario: Treasury APIs for a mid-size bank
+#
+# Services: 10 treasury-related APIs
+#   - Cash management
+#   - Payment processing
+#   - Risk calculations
+#   - Compliance reporting
+#   - Market data feeds
+#
+# Replicas: 3 per service (HA)
+#
+# Usage Pattern:
+#   Monday-Friday:
+#     09:00-18:00 GMT: Active trading (9 hours × 5 days = 45 hours/week)
+#     18:00-09:00: Minimal/zero traffic
+#   Weekend: Zero traffic
+#
+# Total: 45 hours active / 168 hours billed traditionally
+#
+# Cost Calculation (use YOUR calculator!):
+#
+#   Input:
+#     - Services: 10
+#     - Replicas: 3
+#     - Usage hours: 45
+#     - Cost/hour: $0.05 (your actual cloud cost)
+#
+#   Traditional K8s:
+#     - 10 services × 3 replicas × 168 hours = 5,040 pod-hours/week
+#     - 5,040 × $0.05 = $252/week = $13,104/year
+#
+#   Knative (scale-to-zero):
+#     - 10 services × 3 replicas × 45 hours = 1,350 pod-hours/week
+#     - 1,350 × $0.05 = $67.50/week = $3,510/year
+#
+#   Savings: $9,594/year (73%)
+#
+# Why this could work for financial services:
+#
+#   ✓ Predictable hours: Market-driven workloads
+#   ✓ Zero traffic nights/weekends
+#   ✓ Fast cold starts OK: Sub-second startup acceptable
+#   ✓ Cost sensitive: Budget optimization mandatory
+#   ✓ Compliance ready: Same security as traditional K8s
+#
+# Why vendor neutral matters here:
+#
+#   ✓ Regulatory compliance: Data sovereignty requirements
+#   ✓ Risk management: Avoid single cloud dependency
+#   ✓ Disaster recovery: Multi-region, multi-cloud
+#   ✓ Cost negotiation: Leverage competition
+#   ✓ Technology choice: Best-of-breed per region
+#
+# This SAME YAML deploys to:
+#   - On-premise (data sovereignty)
+#   - AWS EKS (Americas region)
+#   - Azure AKS (Europe region)
+#   - GCP GKE (Asia-Pacific region)
+#
+# Zero changes. Portable. Compliant.
+#
+# Deployment Instructions:
+#
+#   1. Update image to your treasury API
+#   2. Configure environment variables
+#   3. Update resource limits based on load testing
+#   4. Deploy: kubectl apply -f treasury-api.yaml
+#   5. Apply governance policies (see ../policies/)
+#   6. Monitor with your existing tools
+#
+# Monitoring:
+#   kubectl get ksvc treasury-api
+#   kubectl describe ksvc treasury-api
+#   kubectl logs -l app=treasury-api -f
+#
+# Production Checklist:
+#   ☐ Load test cold start latency
+#   ☐ Configure proper resource limits
+#   ☐ Set up monitoring/alerting
+#   ☐ Apply Kyverno policies
+#   ☐ Document business hours
+#   ☐ Measure actual savings
+#   ☐ Validate compliance requirements
