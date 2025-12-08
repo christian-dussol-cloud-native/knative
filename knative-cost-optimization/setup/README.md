@@ -69,6 +69,8 @@ chmod +x cleanup-knative.sh
 
 ```bash
 # Step 1: Install minikube (if not already installed)
+# start minikube
+minikube tunnel
 
 # Step 2: Install Knative + Kyverno
 ./install-knative.sh
