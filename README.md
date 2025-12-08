@@ -33,7 +33,6 @@ This repository is licensed under Creative Commons Attribution-ShareAlike 4.0 In
 
 **Christian Dussol**  
 Senior Engineering Manager @ Finastra  
-CNCF Program Committee Member (KyvernoCon Europe 2026)
 
 ---
 
