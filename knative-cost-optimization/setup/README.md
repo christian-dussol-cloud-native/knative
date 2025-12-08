@@ -70,6 +70,7 @@ chmod +x cleanup-knative.sh
 ```bash
 # Step 1: Install minikube (if not already installed)
 # start minikube
+# In another terminal, start tunnel
 minikube tunnel
 
 # Step 2: Install Knative + Kyverno
@@ -78,10 +79,7 @@ minikube tunnel
 # Step 3: Test the service
 kubectl get ksvc hello
 
-# Step 4: In another terminal, start tunnel
-minikube tunnel
-
-# Step 5: Test scale-to-zero
+# Step 4: Test scale-to-zero
 curl http://hello.default.127.0.0.1.sslip.io
 ```
 
