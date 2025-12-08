@@ -246,6 +246,20 @@ curl http://hello-world.default.127.0.0.1.sslip.io
 # Pod starts in <1 second
 ```
 
+**Apply governance policies:**
+
+```bash
+cd policies
+
+# Once Kyverno installed
+
+# Prevent runaway costs by requiring resource limits on all pods
+kubectl apply -f enforce-resource-limits.yaml
+
+# Prevent cost waste by requiring scale-to-zero in non-production
+kubectl apply -f enforce-scale-to-zero.yaml
+```
+
 **Test governance policies:**
 ```bash
 cd examples/governance
