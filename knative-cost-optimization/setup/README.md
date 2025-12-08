@@ -94,11 +94,13 @@ curl http://hello.default.127.0.0.1.sslip.io
 kubectl get namespaces
 # Should NOT see: knative-serving, kourier-system
 
-# Step 3: Reinstall
+# Step 3
+minikube tunnel  # In another terminal
+
+# Step 4: Reinstall
 ./install-knative.sh
 
-# Step 4: Test again
-minikube tunnel  # In another terminal
+# Step 5: Test again
 curl http://hello.default.127.0.0.1.sslip.io
 ```
 
