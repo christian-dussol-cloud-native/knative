@@ -6,7 +6,7 @@
 
 Part of **CNCF Project Focus** series - exploring cloud-native technologies in depth.
 
-## 🎯 About This Repository
+## About This Repository
 
 This repository contains learning materials and educational examples for **Knative**, the vendor-neutral serverless platform for Kubernetes.
 
@@ -18,15 +18,11 @@ This repository contains learning materials and educational examples for **Knati
 
 Modules will be added progressively as part of the CNCF Project Focus series.
 
-*(Coming soon)*
+- Cost optimization (scale to zero)
 
-## ⚠️ Educational Content
+## Educational Content
 
 This repository provides **learning materials and reference implementations**. Always review and adapt code to your specific requirements before using in production.
-
-## 📖 Related Content
-
-- 📝 [LinkedIn - CNCF Project Focus](https://linkedin.com/in/christiandussol)
 
 ## License
 This repository is licensed under Creative Commons Attribution-ShareAlike 4.0 International License.
