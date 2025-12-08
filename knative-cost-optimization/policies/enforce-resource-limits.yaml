@@ -20,7 +20,7 @@ metadata:
     pod-policies.kyverno.io/autogen-controllers: none
 spec:
   # Enforce mode: blocks non-compliant deployments
-  validationFailureAction: enforce
+  validationFailureAction: Enforce
   
   # Run in background for reporting
   background: true
