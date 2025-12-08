@@ -264,6 +264,9 @@ kubectl apply -f enforce-scale-to-zero.yaml
 ```bash
 cd examples/governance
 
+# Create K8s dev namespace
+kubectl create ns dev
+
 # This should FAIL (no scale-to-zero in dev namespace)
 kubectl apply -f bad-service.yaml
 
