@@ -209,7 +209,7 @@ Potential Savings = Traditional Cost - Knative Cost
 **Quick start:**
 ```bash
 # Clone this repository
-git clone https://github.com/ChristianDussol/knative-cost-optimization-learning.git
+git clone https://github.com/christian-dussol-cloud-native/knative.git
 cd knative-cost-optimization-learning
 
 # Option 1: Minikube (Once installed)
