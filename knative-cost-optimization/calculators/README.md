@@ -103,8 +103,6 @@ python3 cost_calculator.py \
 
 ## Formula
 
-Both calculators use the same formula:
-
 ```
 Traditional Cost = services × replicas × 168 hours/week × cost/hour
 Knative Cost = services × replicas × usage_hours/week × cost/hour
@@ -117,7 +115,6 @@ Savings % = (Savings / Traditional Cost) × 100
 **Reality check:**
 - Cold starts add latency (~1 second)
 - First request after idle takes longer
-- Not suitable for all workloads
 
 ---
 
@@ -151,19 +148,3 @@ Savings % = (Savings / Traditional Cost) × 100
 2. **Test in non-production** first
 3. **Monitor actual usage** before optimizing
 4. **Consider cold start impact** on user experience
-
----
-
-## 🤝 Contributing
-
-Have improvements for the calculators?
-- Better formulas
-- Additional scenarios
-- CSV export features
-- Integration with cloud cost APIs
-
-Open an issue or PR!
-
----
-
-**Remember:** Use YOUR numbers. No bullshit. Honest cost optimization.
