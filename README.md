@@ -14,6 +14,9 @@ This repository contains learning materials and educational examples for **Knati
 
 **Educational focus.** Real code and examples
 
+### [carousel/](./carousel)
+Collection of visual presentations (carousels) illustrating advanced Knative concepts.
+
 ## 📚 Learning Modules
 
 Modules will be added progressively as part of the CNCF Project Focus series.
