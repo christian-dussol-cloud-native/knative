@@ -27,6 +27,9 @@ Modules will be added progressively as part of the CNCF Project Focus series.
 
 This repository provides **learning materials and reference implementations**. Always review and adapt code to your specific requirements before using in production.
 
+### Medium related articles
+[Knative: stop paying for idle Kubernetes pods](https://medium.com/@christian.dussol/knative-stop-paying-for-idle-kubernetes-pods-ac5e6ec350fa)
+
 ## License
 This repository is licensed under Creative Commons Attribution-ShareAlike 4.0 International License.
 
